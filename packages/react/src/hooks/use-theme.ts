@@ -2,15 +2,15 @@
 
 import { useSyncExternalStore } from 'react'
 
-import { createThemeStore } from '../stores/theme-store'
+import { createThemeStore, Theme } from '../stores/theme-store'
 
 const themeStore = createThemeStore()
 
-export function useTheme() {
+export function useTheme(): [Theme, (newTheme: Theme) => void] {
   const theme = useSyncExternalStore(
     themeStore.subscribe,
     themeStore.get,
     themeStore.get,
   )
-  return theme
+  return [theme, themeStore.set]
 }

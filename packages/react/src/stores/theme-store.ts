@@ -1,10 +1,14 @@
 'use client'
 import type { DevupTheme } from '../types/theme'
 
-type Theme = keyof DevupTheme | null
+export type Theme = keyof DevupTheme | null
 type StoreChangeEvent = (newTheme: Theme) => void
 
-const initTheme = null
+const LOCAL_STORAGE_KEY = '__DF_THEME_SELECTED__'
+const initTheme =
+  typeof localStorage !== 'undefined'
+    ? ((localStorage.getItem(LOCAL_STORAGE_KEY) as Theme) ?? null)
+    : null
 
 export function createThemeStore() {
   if (typeof window === 'undefined')
@@ -20,6 +24,8 @@ export function createThemeStore() {
   const get = () => theme
   const set = (newTheme: Theme) => {
     theme = newTheme
+    document.documentElement.setAttribute('data-theme', newTheme ?? '')
+    localStorage.setItem(LOCAL_STORAGE_KEY, newTheme ?? '')
     subscribers.forEach((subscriber) => subscriber(theme))
   }
 
@@ -29,16 +35,6 @@ export function createThemeStore() {
     return () => subscribers.delete(onStoreChange)
   }
 
-  const mo = new MutationObserver((mutations) => {
-    for (const m of mutations)
-      if (m.type === 'attributes' && m.target instanceof HTMLElement)
-        set(m.target.getAttribute('data-theme') as Theme)
-  })
-  mo.observe(el, {
-    attributes: true,
-    attributeFilter: ['data-theme'],
-    subtree: false,
-  })
   return {
     get,
     set,
